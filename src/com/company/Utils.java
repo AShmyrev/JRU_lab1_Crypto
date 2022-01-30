@@ -1,11 +1,11 @@
 package com.company;
 
+import com.sun.source.tree.Tree;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Scanner;
-import java.util.Set;
+import java.util.*;
 
 public class Utils {
     private static final Set<Character> ALPHABET_SET = Set.of(
@@ -28,13 +28,86 @@ public class Utils {
 
 //    private static final int TEST_KEY = 3;
 //    private static final String TEST_USER_PATH = "C:\\Users\\User\\Desktop\\testUserFile.txt";
-//    private static final String TEST_USER_PATH_ENCRYPTED = "C:\\Users\\User\\Desktop\\testUserFile-encrypted.txt";
+//    private static final String TEST_USER_PATH_ENCRYPTED = "C:\\Users\\User\\Desktop\\testUserFile1-encrypted.txt";
 
 
     // TODO: Расшифровывает текст на основе статистического анализа
-    public static String decryptStatisticAnalysis(String text, String similarText) {
-        return "";
+    public static void decryptStatisticAnalysis() {
+        String userTextPath = getUserTextPath();
+        String userText = getUserTextFromFile(userTextPath);
+        String userStatisticTextPath = getUserTextPath();
+        String userStatisticText = getUserTextFromFile(userStatisticTextPath);
+
+        HashMap<Character, Integer> mapOfSymbolStatisticsOfTheUserText = getSymbolStatistics(userText);
+        HashMap<Character, Integer> mapOfSymbolStatisticsOfTheUserStatisticText = getSymbolStatistics(userStatisticText);
     }
+
+    // TODO: Получает статистику двух HashMap
+    private static HashMap<Character, Character> getHashMapsStatistics(HashMap<Character, Integer> mapUserText,
+                                                                     HashMap<Character, Integer> mapUserStatisticText) {
+        HashMap<Character, Character> mapComparedStatistics = new HashMap<>();
+
+        int theBiggestMapSize = 0;
+        if (mapUserText.size() >= mapUserStatisticText.size()) {
+            theBiggestMapSize = mapUserText.size();
+        } else {
+            theBiggestMapSize = mapUserStatisticText.size();
+        }
+        for (int i = 0; i < theBiggestMapSize; i++) {
+//            if ()
+            Map.Entry<Character, Integer> current = null;
+            for (Map.Entry<Character, Integer> entryUserText : mapUserText.entrySet()) {
+
+            }
+            for (Map.Entry<Character, Integer> entryUserStatisticText : mapUserStatisticText.entrySet()) {
+
+            }
+            Map.Entry<Character, Character> currentMaxByValue = null;
+        }
+
+        return null;
+    }
+
+
+
+    /** Получает HashMap с количеством вхождений каждого символа + относительную статистику */
+    private static HashMap<Character, Integer> getSymbolStatistics(String userText) {
+        HashMap<Character, Integer> mapOfAbsoluteSymbolsStatistics = new HashMap<>();
+        HashMap<Character, Integer> mapOfRelativeSymbolsStatistics = new HashMap<>();
+        char[] userTextChars = userText.toCharArray();
+        for (int i = 0; i < userTextChars.length; i++) {
+            if (mapOfAbsoluteSymbolsStatistics.containsKey(userTextChars[i])) {
+                Integer currentSymbolValue = mapOfAbsoluteSymbolsStatistics.get(userTextChars[i]);
+                ++currentSymbolValue;
+                mapOfAbsoluteSymbolsStatistics.put(userTextChars[i], currentSymbolValue);
+            } else {
+                mapOfAbsoluteSymbolsStatistics.put(userTextChars[i], 1);
+            }
+        }
+        mapOfAbsoluteSymbolsStatistics = getMapFilledByAlphabet(mapOfAbsoluteSymbolsStatistics);
+
+        for (Character currentChar : mapOfAbsoluteSymbolsStatistics.keySet()) {
+            Integer currentValue = mapOfAbsoluteSymbolsStatistics.get(currentChar);
+            int relativeValue = currentValue * 10_000 / userText.length();
+            mapOfRelativeSymbolsStatistics.put(currentChar, relativeValue);
+        }
+//        for (Map.Entry<Character, Integer> entry : mapOfAbsoluteSymbolsStatistics.entrySet()) {
+//            System.out.println("Key = " + entry.getKey() + ", Value = " + entry.getValue());
+//        }
+//        System.out.println();
+        return mapOfRelativeSymbolsStatistics;
+    }
+    /** Дозаполняет HashMap на случай если какой-либо символ не встретился ни разу */
+    private static HashMap<Character, Integer> getMapFilledByAlphabet(HashMap<Character, Integer> mapToBeFilled) {
+        char[] alphabetChars = ALPHABET.toCharArray();
+        for (int i = 0; i < alphabetChars.length; i++) {
+            if ( !mapToBeFilled.containsKey(alphabetChars[i]) ) {
+                mapToBeFilled.put(alphabetChars[i], 0);
+            }
+        }
+        return mapToBeFilled;
+    }
+
     /** Расшифровывает текст методом bruteforce */
     public static void decryptBruteForce() {
         String userTextPath = getUserTextPath();
@@ -53,7 +126,6 @@ public class Utils {
             }
         }
     }
-
     /** Проверка расшифрованного брутфорсом текста на правильность */
     private static boolean isTheBruteForcedTextCorrect(String bruteForcedText) {
         char[] bruteForcedTextChars = bruteForcedText.toCharArray();

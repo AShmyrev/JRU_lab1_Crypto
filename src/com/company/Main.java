@@ -64,7 +64,7 @@ public class Main {
                     break;
                 }
                 case (4): {
-                    System.out.println("Statistic analysis option in progress... Choose another option\n");
+                    Utils.decryptStatisticAnalysis();
                     break;
                 }
                 case (0): {
