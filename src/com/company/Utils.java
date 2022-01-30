@@ -8,53 +8,104 @@ import java.util.Scanner;
 import java.util.Set;
 
 public class Utils {
-
-    public static final Set<Character> ALPHABET_SET = Set.of(
+    private static final Set<Character> ALPHABET_SET = Set.of(
             'а', 'б', 'в', 'г', 'д', 'е', 'ё', 'ж', 'з', 'и', 'й', 'к', 'л', 'м', 'н', 'о', 'п',
             'р', 'с', 'т', 'у', 'ф', 'х', 'ц', 'ч', 'ш', 'щ', 'ъ', 'ы', 'ь', 'э', 'ю', 'я',
             'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
             '.', ',', '"', ':', ';', '-', '—', '!', '?', ' ', '/', '\\',
             '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
     );
-    public static final String RUSSIAN_ALPHABET = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя";
-    public static final String ENGLISH_ALPHABET = "abcdefghijklmnopqrstuvwxyz";
-    public static final String SYMBOLS = ".,\":-—!? /\\";
-    public static final String DIGITS = "0123456789";
-    public static final String ALPHABET = RUSSIAN_ALPHABET + ENGLISH_ALPHABET +  SYMBOLS + DIGITS;
-    public static final Scanner SCANNER = new Scanner(System.in); // TODO: переписать с TryWithResources
+    private static final String RUSSIAN_ALPHABET = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя";
+    private static final String ENGLISH_ALPHABET = "abcdefghijklmnopqrstuvwxyz";
+    private static final String SYMBOLS = ".,\":-—!? /\\";
+    private static final String DIGITS = "0123456789";
+    private static final String ALPHABET = RUSSIAN_ALPHABET + ENGLISH_ALPHABET +  SYMBOLS + DIGITS;
+    private static final String PARTS_OF_WORD = RUSSIAN_ALPHABET + ENGLISH_ALPHABET + '-';
+    private static final int MAX_WORD_LENGTH = 30;
+    private static final int MAX_LENGTH_WITHOUT_SPACES = 50;
 
-    public static final int TEST_KEY = 3;
-    public static final String TEST_USER_PATH = "C:\\Users\\User\\Desktop\\testUserFile.txt";
-    public static final String TEST_USER_PATH_ENCRYPTED = "C:\\Users\\User\\Desktop\\testUserFile-encrypted.txt";
+    public static final Scanner SCANNER = new Scanner(System.in);
+
+//    private static final int TEST_KEY = 3;
+//    private static final String TEST_USER_PATH = "C:\\Users\\User\\Desktop\\testUserFile.txt";
+//    private static final String TEST_USER_PATH_ENCRYPTED = "C:\\Users\\User\\Desktop\\testUserFile-encrypted.txt";
 
 
     // TODO: Расшифровывает текст на основе статистического анализа
     public static String decryptStatisticAnalysis(String text, String similarText) {
         return "";
     }
-    // TODO: Расшифровывает текст методом bruteforce
+    /** Расшифровывает текст методом bruteforce */
     public static void decryptBruteForce() {
         String userTextPath = getUserTextPath();
         String userText = getUserTextFromFile(userTextPath);
         String bruteForcedText = userText;
         for (int i = 0; i < ALPHABET.length(); i++) {
             bruteForcedText = decryptTextViaKey(userText, i);
-            if (isTheBruteForcedTextCorrect(userText)) {
+            if (isTheBruteForcedTextCorrect(bruteForcedText)) {
                 if (i == 0) {
                     System.out.println("The text is not encrypted! BruteForce doesn't needed.");
                     break;
                 }
                 System.out.println("The text has been bruteForced!\nThe key is " + i);
-                writeTextToFile(userText, userTextPath, true);
+                writeTextToFile(bruteForcedText, userTextPath, true);
+                break;
             }
         }
     }
 
-
-
-    // TODO: сделать проверку расшифрованного брутфорсом текста на правильность
+    /** Проверка расшифрованного брутфорсом текста на правильность */
     private static boolean isTheBruteForcedTextCorrect(String bruteForcedText) {
-        return false;
+        char[] bruteForcedTextChars = bruteForcedText.toCharArray();
+        int wordCounter = 0, wordsCounterLessThan30Symbols = 0, wordsCounterMoreThan30Symbols = 0;
+        boolean wasThereAtLeastOneSpace = false;
+        for (int i = 0; i < bruteForcedTextChars.length - 1; i++) {
+            if (i == MAX_LENGTH_WITHOUT_SPACES && !wasThereAtLeastOneSpace) {
+                System.out.println("BrutForce failed in MAX_LENGTH_WITHOUT_SPACES case!");
+                return false;
+            }
+            /* Точка может быть пунктом, например: п.1
+            if (bruteForcedTextChars[i] == '.' && bruteForcedTextChars[i + 1] != ' ') {
+                System.out.println("BrutForce failed in '.' + ' ' case!");
+                return false;
+            }
+             */
+            if (bruteForcedTextChars[i] == ',' && bruteForcedTextChars[i + 1] != ' ') {
+                System.out.println("BrutForce failed in ',' + ' ' case!");
+                return false;
+            }
+            if (bruteForcedTextChars[i] == '!' && bruteForcedTextChars[i + 1] != ' ') {
+                System.out.println("BrutForce failed in '!' + ' ' case!");
+                return false;
+            }
+            if (bruteForcedTextChars[i] == '?' && bruteForcedTextChars[i + 1] != ' ') {
+                System.out.println("BrutForce failed in '?' + ' ' case!");
+                return false;
+            }
+            if (bruteForcedTextChars[i] == ';' && bruteForcedTextChars[i + 1] != ' ') {
+                System.out.println("BrutForce failed in ';' + ' ' case!");
+                return false;
+            }
+            if (PARTS_OF_WORD.indexOf(bruteForcedTextChars[i]) != -1) {
+                wordCounter++;
+            }
+            if (bruteForcedTextChars[i] == ' ') {
+                if (i != 0) {
+                    wasThereAtLeastOneSpace = true;
+                }
+                if (wordCounter > MAX_WORD_LENGTH) {
+                    wordsCounterMoreThan30Symbols++;
+                } else {
+                    wordsCounterLessThan30Symbols++;
+                }
+                wordCounter = 0;
+            }
+            if ((double)wordsCounterMoreThan30Symbols / wordsCounterLessThan30Symbols * 100 > 2.0) {
+                System.out.println("BrutForce failed in 'too much long words case'!");
+                return false;
+            }
+        }
+        return true;
     }
 
     /** Расшифровывает текст по ключу. */
@@ -219,9 +270,6 @@ public class Utils {
             return null;
         }
     }
-
-
-
 
 
     /**
