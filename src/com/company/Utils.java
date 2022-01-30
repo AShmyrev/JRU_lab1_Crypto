@@ -21,7 +21,7 @@ public class Utils {
     public static final String SYMBOLS = ".,\":-—!? /\\";
     public static final String DIGITS = "0123456789";
     public static final String ALPHABET = RUSSIAN_ALPHABET + ENGLISH_ALPHABET +  SYMBOLS + DIGITS;
-    public static final Scanner SCANNER = new Scanner(System.in);
+    public static final Scanner SCANNER = new Scanner(System.in); // TODO: переписать с TryWithResources
 
     public static final int TEST_KEY = 3;
     public static final String TEST_USER_PATH = "C:\\Users\\User\\Desktop\\testUserFile.txt";
@@ -33,8 +33,28 @@ public class Utils {
         return "";
     }
     // TODO: Расшифровывает текст методом bruteforce
-    public static String decryptBruteForce(String text) {
-        return "";
+    public static void decryptBruteForce() {
+        String userTextPath = getUserTextPath();
+        String userText = getUserTextFromFile(userTextPath);
+        String bruteForcedText = userText;
+        for (int i = 0; i < ALPHABET.length(); i++) {
+            bruteForcedText = decryptTextViaKey(userText, i);
+            if (isTheBruteForcedTextCorrect(userText)) {
+                if (i == 0) {
+                    System.out.println("The text is not encrypted! BruteForce doesn't needed.");
+                    break;
+                }
+                System.out.println("The text has been bruteForced!\nThe key is " + i);
+                writeTextToFile(userText, userTextPath, true);
+            }
+        }
+    }
+
+
+
+    // TODO: сделать проверку расшифрованного брутфорсом текста на правильность
+    private static boolean isTheBruteForcedTextCorrect(String bruteForcedText) {
+        return false;
     }
 
     /** Расшифровывает текст по ключу. */
@@ -43,24 +63,12 @@ public class Utils {
         String userText = getUserTextFromFile(userTextPath)/*"вaхс0хзфхсегc0фхуснг-0нсхсугc0жсойрг0дюхя0кгылчусегрг-0л-0е0тсфозжфхелл-0угфылчусегрг:0d0hwr0gromqr0rweurvlwv,d:"*/;
         String preparedUserText = prepareUserText(userText);
 
-        System.out.println("Put a key from 0 to " + Utils.ALPHABET_SET.size());
-        int userKey = Utils.SCANNER.nextInt();
+        int userKey = getUserKey();
 
-        char[] userTextChars = preparedUserText.toCharArray();
-        char[] alphabetChars = ALPHABET.toCharArray();
-        for (int i = 0; i < userTextChars.length; i++) {
-            for (int j = 0; j < alphabetChars.length; j++) {
-                if (userTextChars[i] == alphabetChars[j]) {
-                    int newPosition = j - userKey;
-                    if (newPosition < 0) {
-                        newPosition = alphabetChars.length + newPosition;
-                    }
-                    userTextChars[i] = alphabetChars[newPosition];
-                    break;
-                }
-            }
-        }
-        writeTextToFile(new String(userTextChars), userTextPath, false);
+        String decryptedText = decryptTextViaKey(preparedUserText, userKey);
+
+        System.out.println("The text has been decrypted!");
+        writeTextToFile(decryptedText, userTextPath, false);
     }
 
     /** Зашифровывает текст по заданному ключу. */
@@ -69,26 +77,64 @@ public class Utils {
 
         String userText = getUserTextFromFile(userTextPath)/*"    9Это    тестовая строка, которая должна быть зашифрована, и, в последствии, расшифрована. a eto doljno otbrositsya.   "*/;
         String preparedUserText = prepareUserText(userText);
+        int userKey = getUserKey();
 
-        System.out.println("Put a key from 0 to " + Utils.ALPHABET_SET.size());
-        int userKey = Utils.SCANNER.nextInt();
+        String encryptedText = encryptTextViaKey(preparedUserText, userKey);
 
-        char[] userTextChars = preparedUserText.toCharArray();
+        System.out.println("The text has been encrypted!");
+        writeTextToFile(encryptedText, userTextPath, true);
+    }
+
+
+    /** Вспомогательный метод, расшифровывающий текст по ключу */
+    private static String decryptTextViaKey(String textToDecrypt, int key) {
         char[] alphabetChars = ALPHABET.toCharArray();
+        char[] userTextChars = textToDecrypt.toCharArray();
         for (int i = 0; i < userTextChars.length; i++) {
             for (int j = 0; j < alphabetChars.length; j++) {
                 if (userTextChars[i] == alphabetChars[j]) {
-                    int newPosition = j + userKey;
-                    userTextChars[i] = alphabetChars[newPosition % alphabetChars.length];
-                    System.out.print(userTextChars[i]);
+                    int newPosition = j - key;
+                    if (newPosition < 0) {
+                        newPosition = alphabetChars.length + newPosition;
+                    }
+                    userTextChars[i] = alphabetChars[newPosition];
                     break;
                 }
             }
         }
-        writeTextToFile(new String(userTextChars), userTextPath, true);
+        return new String(userTextChars);
     }
-
-
+    /** Вспомогательный метод, шифрующий текст по ключу */
+    private static String encryptTextViaKey(String textToEncrypt, int key) {
+        char[] alphabetChars = ALPHABET.toCharArray();
+        char[] userTextChars = textToEncrypt.toCharArray();
+        for (int i = 0; i < userTextChars.length; i++) {
+            for (int j = 0; j < alphabetChars.length; j++) {
+                if (userTextChars[i] == alphabetChars[j]) {
+                    int newPosition = j + key;
+                    userTextChars[i] = alphabetChars[newPosition % alphabetChars.length];
+//                    System.out.print(userTextChars[i]);
+                    break;
+                }
+            }
+        }
+        return new String(userTextChars);
+    }
+    /** Получает key у пользователя */
+    private static int getUserKey() {
+        System.out.println("Put a key from 0 to " + Utils.ALPHABET.length());
+        int userKey = -1;
+        try {
+            userKey = Utils.SCANNER.nextInt();
+            while ( !(userKey >= 0 && userKey <= Utils.ALPHABET.length()) ) {
+                System.out.println("Incorrect key. Put a key from 0 to " + Utils.ALPHABET.length());
+                userKey = Utils.SCANNER.nextInt();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return userKey;
+    }
     /** Получает путь к файлу пользователя */
     // TODO: Исправить двойной вызов Scanner
     private static String getUserTextPath() {
@@ -145,6 +191,7 @@ public class Utils {
         return checkedTextCharsWithoutDoubledSpaces;
     }
     /** Записывает текст из строки в файл. false - зашифрованный, true - расшифрованный*/
+    // TODO: сделать флаг на все методы шифровки/расшифровки
     public static void writeTextToFile(String userText, String previousUserTextPath, boolean isEncryptOrDecrypt) {
         int txtIndex = previousUserTextPath.lastIndexOf(".txt");
         String fileName = previousUserTextPath.substring(0, txtIndex);
@@ -157,6 +204,7 @@ public class Utils {
         }
         try {
             Files.writeString(Path.of(newFileName), userText);
+            System.out.println("The text path is " + newFileName + '\n');
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -61,7 +61,7 @@ public class Main {
                     break;
                 }
                 case (3): {
-                    System.out.println("bruteforce decrypt option");
+                    Utils.decryptBruteForce();
                     break;
                 }
                 case (4): {
